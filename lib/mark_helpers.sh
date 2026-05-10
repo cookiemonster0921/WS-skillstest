@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 # practice/lib/mark_helpers.sh
 # Sourced (not executed) by every per-question mark.sh.
-# Caller must set RUNDIR and REPO_ROOT before sourcing.
 
 PASS_COUNT=0
 FAIL_COUNT=0
 WARN_COUNT=0
 
-GREEN='\033[32m'
-RED='\033[31m'
-YELLOW='\033[33m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+RED=$'\033[31m'
+YELLOW=$'\033[33m'
+BLUE=$'\033[34m'
+DIM=$'\033[2m'
+RESET=$'\033[0m'
 
 pass() {
     PASS_COUNT=$(( PASS_COUNT + 1 ))
@@ -28,7 +29,7 @@ warn() {
 }
 
 info() {
-    printf "   [INFO] %s\n" "$1"
+    printf "${BLUE}   ℹ  %s${RESET}\n" "$1"
 }
 
 # check_file_exists <filepath> <label>
@@ -46,7 +47,6 @@ check_file_exists() {
 }
 
 # check_line_count <filepath> <expected> <label>
-# Uses awk NR to count lines correctly even when the file lacks a trailing newline.
 check_line_count() {
     local filepath="$1"
     local expected="$2"
@@ -90,21 +90,19 @@ check_contains_string() {
 }
 
 # run_script_test <script_path> <args_string> <expected_stdout> <label>
-# Runs: bash <script> <args> and checks stdout == expected.
 run_script_test() {
     local script="$1"
     local args="$2"
     local expected="$3"
     local label="$4"
     local actual
-    # eval allows multi-word args; 2>/dev/null suppresses script errors from stdout
     actual=$(eval bash '"$script"' $args 2>/dev/null)
     if [ "$actual" = "$expected" ]; then
         pass "$label"
     else
         fail "$label"
-        info "  expected: '$expected'"
-        info "  got:      '$actual'"
+        info "expected: '$expected'"
+        info "got:      '$actual'"
     fi
 }
 
@@ -126,14 +124,15 @@ run_script_exitcode() {
 
 # print_summary — call at end of every mark.sh
 print_summary() {
+    local BOLD=$'\033[1m'
     echo ""
-    echo "─────────────────────────────────────────"
+    printf "${DIM}─────────────────────────────────────────${RESET}\n"
     if [ "$FAIL_COUNT" -gt 0 ]; then
-        printf "${RED}Score: %d passed, %d failed, %d warnings${RESET}\n" \
+        printf "${RED}${BOLD}Score: %d passed, %d failed, %d warnings${RESET}\n" \
             "$PASS_COUNT" "$FAIL_COUNT" "$WARN_COUNT"
         exit 1
     else
-        printf "${GREEN}Score: %d passed, %d failed, %d warnings${RESET}\n" \
+        printf "${GREEN}${BOLD}Score: %d passed, %d failed, %d warnings${RESET}\n" \
             "$PASS_COUNT" "$FAIL_COUNT" "$WARN_COUNT"
         exit 0
     fi
